@@ -322,7 +322,9 @@ const App = {
     const titulo = data ? 'Editar Registro' : 'Novo Registro';
 
     const indiceDisplay = data ? String(data.indice || '').padStart(3, '0') : Db.count(tipo) + 1;
-    const matriculaDisplay = data ? (data.matricula || '-') : Db._gerarMatricula(tipo, Db.count(tipo) + 1);
+    const codigos = { nascimento: '01', casamento: '02', obito: '04', 'livro-e': '05' };
+    const codTipo = codigos[tipo] || '00';
+    const matriculaDisplay = data ? (data.matricula || '-') : '065136-' + codTipo + '-{livro}-{folha}-{termo}';
 
     let html = `<div class="card"><div class="card-header"><h3>${titulo}</h3>
       <button class="btn btn-outline btn-sm" onclick="App.loadTabela('${tipo}')">← Voltar</button>

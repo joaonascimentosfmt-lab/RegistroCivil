@@ -79,12 +79,14 @@ const Db = {
     return atual;
   },
 
-  _gerarMatricula(tipo, indice) {
+  _gerarMatricula(registro) {
     const cns = '065136';
-    const prefixos = { nascimento: 'NASC', casamento: 'CAS', obito: 'OBIT', 'livro-e': 'LIVRE' };
-    const prefixo = prefixos[tipo] || 'REG';
-    const ano = new Date().getFullYear();
-    return cns + '-' + prefixo + '-' + ano + '-' + String(indice).padStart(5, '0');
+    const codigos = { nascimento: '01', casamento: '02', obito: '04', 'livro-e': '05' };
+    const codigo = codigos[registro.tipo] || '00';
+    const livro = (registro.livro || '0').replace(/[^0-9A-Za-z]/g, '');
+    const folha = (registro.folha || '0').replace(/[^0-9A-Za-z]/g, '');
+    const termo = (registro.numeroTermo || '0').replace(/[^0-9A-Za-z]/g, '');
+    return cns + '-' + codigo + '-' + livro + '-' + folha + '-' + termo;
   },
 
   save(registro) {
@@ -93,13 +95,14 @@ const Db = {
     if (registro.id) {
       const idx = registros.findIndex(r => r.id === registro.id);
       if (idx >= 0) {
+        registro.matricula = this._gerarMatricula(registro);
         registro.updatedAt = now;
         registros[idx] = registro;
       }
     } else {
       registro.id = Date.now().toString(36) + Math.random().toString(36).substring(2, 7).toUpperCase();
       registro.indice = this._proximoIndice(registro.tipo);
-      registro.matricula = this._gerarMatricula(registro.tipo, registro.indice);
+      registro.matricula = this._gerarMatricula(registro);
       registro.createdAt = now;
       registro.updatedAt = now;
       registros.push(registro);
