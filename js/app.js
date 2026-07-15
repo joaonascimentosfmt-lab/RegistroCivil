@@ -56,6 +56,8 @@ const App = {
 
   mostrarApp() {
     document.getElementById('loginScreen').classList.add('hidden');
+    this._renderizarIconesNav();
+    document.getElementById('menuToggle').innerHTML = Icons.menu;
     const avatar = document.getElementById('userAvatar');
     const nameEl = document.getElementById('userName');
     const info = document.getElementById('userInfo');
@@ -65,6 +67,13 @@ const App = {
       info.style.display = 'flex';
     }
     this.navigateTo('dashboard');
+  },
+
+  _renderizarIconesNav() {
+    document.querySelectorAll('.nav-icon').forEach(el => {
+      const nome = el.dataset.icon;
+      if (nome && Icons[nome]) el.innerHTML = Icons[nome];
+    });
   },
 
   atualizarBadges() {
@@ -142,10 +151,10 @@ const App = {
   loadDashboard() {
     const container = document.querySelector('#section-dashboard .card-body');
     const tipos = [
-      { key: 'nascimento', label: 'Nascimentos', icon: '👶', cls: 'blue' },
-      { key: 'casamento', label: 'Casamentos', icon: '💍', cls: 'green' },
-      { key: 'obito', label: 'Óbitos', icon: '⚰️', cls: 'red' },
-      { key: 'livro-e', label: 'Livro E', icon: '📚', cls: 'gold' }
+      { key: 'nascimento', label: 'Nascimentos', ico: 'nascimento', cls: 'blue' },
+      { key: 'casamento', label: 'Casamentos', ico: 'casamento', cls: 'green' },
+      { key: 'obito', label: 'Óbitos', ico: 'obito', cls: 'red' },
+      { key: 'livro-e', label: 'Livro E', ico: 'livroE', cls: 'gold' }
     ];
 
     let html = '<div class="stats-grid">';
@@ -153,7 +162,7 @@ const App = {
       const count = Db.count(t.key);
       html += `
         <div class="stat-card" style="cursor:pointer" onclick="App.navigateTo('${t.key}')">
-          <div class="stat-icon ${t.cls}">${t.icon}</div>
+          <div class="stat-icon ${t.cls}">${Icons[t.ico] || ''}</div>
           <div class="stat-info">
             <h4>${count}</h4>
             <p>${t.label}</p>
@@ -165,7 +174,7 @@ const App = {
     const recentes = Db.getAll().sort((a, b) => b.createdAt?.localeCompare(a.createdAt)).slice(0, 10);
     html += '<div class="card"><div class="card-header"><h3>Registros Recentes</h3></div><div class="card-body">';
     if (recentes.length === 0) {
-      html += '<div class="empty-state"><div class="icon">📋</div><h3>Nenhum registro ainda</h3><p>Utilize o menu ao lado para iniciar os registros.</p></div>';
+      html += '<div class="empty-state"><div class="icon">' + Icons.clipboard + '</div><h3>Nenhum registro ainda</h3><p>Utilize o menu ao lado para iniciar os registros.</p></div>';
     } else {
       html += '<div class="table-container"><table><thead><tr><th>Matrícula</th><th>Tipo</th><th>Registrado</th><th>Data</th><th>Ações</th></tr></thead><tbody>';
       recentes.forEach(r => {
@@ -174,7 +183,7 @@ const App = {
         const mat = r.matricula || '-';
         html += `<tr><td><strong>${this.escapeHtml(mat)}</strong></td><td>${tipoLabel}</td><td>${this.escapeHtml(nome)}</td><td>${this.formatDate(r.createdAt)}</td>
           <td class="actions-cell">
-            <button class="btn btn-outline btn-sm" onclick="App.verDetalhe('${r.id}')">👁️</button>
+            <button class="btn btn-outline btn-sm" onclick="App.verDetalhe('${r.id}')" title="Visualizar">${Icons.eye}</button>
           </td></tr>`;
       });
       html += '</tbody></table></div>';
@@ -194,11 +203,11 @@ const App = {
       <div style="flex:1;min-width:200px">
         <input type="text" id="search-${tipo}" placeholder="Buscar..." class="form-group" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;width:100%" oninput="App.buscarNaTabela('${tipo}')">
       </div>
-      <button class="btn btn-primary" onclick="App.novoRegistro('${tipo}')">+ Novo Registro</button>
+      <button class="btn btn-primary" onclick="App.novoRegistro('${tipo}')">${Icons.plus} Novo Registro</button>
     </div>`;
 
     if (registros.length === 0) {
-      html += '<div class="empty-state"><div class="icon">📋</div><h3>Nenhum registro de ' + tipoLabel.toLowerCase() + '</h3><p>Clique em "Novo Registro" para adicionar.</p></div>';
+      html += '<div class="empty-state"><div class="icon">' + Icons.clipboard + '</div><h3>Nenhum registro de ' + tipoLabel.toLowerCase() + '</h3><p>Clique em "Novo Registro" para adicionar.</p></div>';
     } else {
       html += this.buildTabelaHtml(registros, tipo);
     }
@@ -232,9 +241,9 @@ const App = {
         <td>${this.formatDate(r.dataRegistro)}</td>
         <td>${qtdCertidoes > 0 ? '<span class="badge" style="background:var(--success-bg);color:var(--success)">' + qtdCertidoes + ' emitida(s)</span>' : '<span style="color:var(--text-secondary)">0</span>'}</td>
         <td class="actions-cell">
-          <button class="btn btn-outline btn-sm" onclick="App.verDetalhe('${r.id}')" title="Visualizar">👁️</button>
-          <button class="btn btn-outline btn-sm" onclick="App.editarRegistro('${r.id}')" title="Editar">✏️</button>
-          <button class="btn btn-outline btn-sm" onclick="App.excluirRegistro('${r.id}')" title="Excluir">🗑️</button>
+          <button class="btn btn-outline btn-sm" onclick="App.verDetalhe('${r.id}')" title="Visualizar">${Icons.eye}</button>
+          <button class="btn btn-outline btn-sm" onclick="App.editarRegistro('${r.id}')" title="Editar">${Icons.edit}</button>
+          <button class="btn btn-outline btn-sm" onclick="App.excluirRegistro('${r.id}')" title="Excluir">${Icons.trash}</button>
         </td>
       </tr>`;
     });
@@ -248,7 +257,7 @@ const App = {
     const container = document.querySelector(`#section-${section} .table-container`);
     const registros = Db.search(termo, tipo).sort((a, b) => b.createdAt?.localeCompare(a.createdAt));
     container.innerHTML = registros.length === 0
-      ? '<div class="empty-state"><div class="icon">🔍</div><h3>Nenhum resultado</h3></div>'
+      ? '<div class="empty-state"><div class="icon">' + Icons.search + '</div><h3>Nenhum resultado</h3></div>'
       : this.buildTabelaHtml(registros, tipo);
   },
 
@@ -327,7 +336,7 @@ const App = {
     const matriculaDisplay = data ? (data.matricula || '-') : '065136-' + codTipo + '-{livro}-{folha}-{termo}';
 
     let html = `<div class="card"><div class="card-header"><h3>${titulo}</h3>
-      <button class="btn btn-outline btn-sm" onclick="App.loadTabela('${tipo}')">← Voltar</button>
+      <button class="btn btn-outline btn-sm" onclick="App.loadTabela('${tipo}')">${Icons.arrowLeft} Voltar</button>
     </div><div class="card-body">`;
 
     html += `<div class="form-grid" style="margin-bottom:16px;padding:12px;background:var(--primary-lighter);border-radius:6px">`;
@@ -366,8 +375,8 @@ const App = {
     html += '</div>';
 
     html += `<div class="form-actions">
-      <button type="button" class="btn btn-outline" onclick="App.loadTabela('${tipo}')">Cancelar</button>
-      <button type="submit" class="btn btn-primary">💾 Salvar Registro</button>
+      <button type="button" class="btn btn-outline" onclick="App.loadTabela('${tipo}')">${Icons.arrowLeft} Cancelar</button>
+      <button type="submit" class="btn btn-primary">${Icons.save} Salvar Registro</button>
     </div>`;
 
     html += '</form></div></div>';
@@ -451,8 +460,8 @@ const App = {
     }
 
     html += `<div class="form-actions" style="margin-top:16px">
-      <button class="btn btn-accent" onclick="App.navigateTo('certidao', {registroId:'${id}'})">📄 Emitir Certidão</button>
-      <button class="btn btn-outline" onclick="App.editarRegistro('${id}'); document.querySelector('.modal-overlay').classList.remove('open')">✏️ Editar</button>
+      <button class="btn btn-accent" onclick="App.navigateTo('certidao', {registroId:'${id}'})">${Icons.certidao} Emitir Certidão</button>
+      <button class="btn btn-outline" onclick="App.editarRegistro('${id}'); document.querySelector('.modal-overlay').classList.remove('open')">${Icons.edit} Editar</button>
       <button class="btn btn-outline" onclick="document.querySelector('.modal-overlay').classList.remove('open')">Fechar</button>
     </div>`;
 
@@ -503,7 +512,7 @@ const App = {
     html += '</div>';
 
     html += `<div class="form-actions">
-      <button class="btn btn-primary" onclick="App.emitirCertidao()">📄 Emitir Certidão</button>
+      <button class="btn btn-primary" onclick="App.emitirCertidao()">${Icons.certidao} Emitir Certidão</button>
     </div>`;
 
     html += '<div id="cert-resultado" style="margin-top:16px"></div>';
@@ -554,7 +563,7 @@ const App = {
     const container = document.getElementById('cert-resultado');
     container.innerHTML = `
       <div class="card">
-        <div class="card-header"><h3>✅ Certidão Emitida</h3></div>
+        <div class="card-header"><h3>${Icons.check} Certidão Emitida</h3></div>
         <div class="card-body">
           <div class="detail-grid">
             <div class="detail-item"><span class="label">Nº da Certidão</span><span class="value">${certidao.id}</span></div>
@@ -602,7 +611,7 @@ const App = {
     const resultados = Db.search(termo, tipo || null).sort((a, b) => b.createdAt?.localeCompare(a.createdAt));
 
     if (resultados.length === 0) {
-      container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>Nenhum resultado encontrado</h3></div>';
+      container.innerHTML = '<div class="empty-state"><div class="icon">' + Icons.search + '</div><h3>Nenhum resultado encontrado</h3></div>';
       return;
     }
 
@@ -619,8 +628,8 @@ const App = {
         <td><strong>${this.escapeHtml(nome)}</strong></td>
         <td>${this.formatDate(r.dataRegistro)}</td>
         <td class="actions-cell">
-          <button class="btn btn-outline btn-sm" onclick="App.verDetalhe('${r.id}')">👁️</button>
-          <button class="btn btn-accent btn-sm" onclick="App.navigateTo('certidao',{registroId:'${r.id}'})">📄</button>
+          <button class="btn btn-outline btn-sm" onclick="App.verDetalhe('${r.id}')" title="Visualizar">${Icons.eye}</button>
+          <button class="btn btn-accent btn-sm" onclick="App.navigateTo('certidao',{registroId:'${r.id}'})" title="Emitir Certidão">${Icons.certidao}</button>
         </td>
       </tr>`;
     });

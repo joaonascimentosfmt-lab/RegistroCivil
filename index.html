@@ -54,30 +54,30 @@
     </div>
     <nav class="sidebar-nav">
       <button class="nav-item active" data-section="dashboard">
-        <span class="icon">📊</span> Dashboard
+        <span class="icon nav-icon" data-icon="dashboard"></span> Dashboard
       </button>
       <button class="nav-item" data-section="nascimento">
-        <span class="icon">👶</span> Nascimento
+        <span class="icon nav-icon" data-icon="nascimento"></span> Nascimento
         <span class="badge" id="badge-nascimento">0</span>
       </button>
       <button class="nav-item" data-section="casamento">
-        <span class="icon">💍</span> Casamento
+        <span class="icon nav-icon" data-icon="casamento"></span> Casamento
         <span class="badge" id="badge-casamento">0</span>
       </button>
       <button class="nav-item" data-section="obito">
-        <span class="icon">⚰️</span> Óbito
+        <span class="icon nav-icon" data-icon="obito"></span> Óbito
         <span class="badge" id="badge-obito">0</span>
       </button>
       <button class="nav-item" data-section="livroE">
-        <span class="icon">📚</span> Livro E
+        <span class="icon nav-icon" data-icon="livroE"></span> Livro E
         <span class="badge" id="badge-livro-e">0</span>
       </button>
       <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:8px 16px">
       <button class="nav-item" data-section="certidao">
-        <span class="icon">📄</span> Certidões
+        <span class="icon nav-icon" data-icon="certidao"></span> Certidões
       </button>
       <button class="nav-item" data-section="consulta">
-        <span class="icon">🔍</span> Consulta
+        <span class="icon nav-icon" data-icon="consulta"></span> Consulta
       </button>
     </nav>
     <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;opacity:0.5">
@@ -89,7 +89,7 @@
   <div class="main">
     <header class="top-bar">
       <div style="display:flex;align-items:center;gap:12px">
-        <button class="menu-toggle">☰</button>
+        <button class="menu-toggle" id="menuToggle"></button>
         <h2>Dashboard</h2>
       </div>
       <div class="actions">
@@ -162,6 +162,7 @@
   <!-- Toast -->
   <div class="toast-container"></div>
 
+  <script src="js/icons.js"></script>
   <script src="js/db.js"></script>
   <script src="js/app.js"></script>
 </body>
