@@ -5,7 +5,9 @@ const PRECACHE_URLS = [
   '/css/style.css',
   '/js/app.js',
   '/js/db.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/assets/icon-192.svg',
+  '/assets/icon-512.svg'
 ];
 
 self.addEventListener('install', event => {
