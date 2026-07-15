@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Registro Civil - Sistema de Gestão</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="theme-color" content="#1e3a5f">
+  <meta name="description" content="Sistema de Registro Civil de Pessoas Naturais para Cartórios">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-card-header">
+        <div class="logo">RC</div>
+        <h1>Registro Civil</h1>
+        <p>Sistema de Gestão Cartorária</p>
+      </div>
+      <div class="login-card-body">
+        <div class="login-error" id="loginError">Usuário ou senha inválidos</div>
+        <form id="loginForm" onsubmit="return App.login(event)">
+          <div class="form-group">
+            <label for="loginUser">Usuário</label>
+            <input type="text" id="loginUser" placeholder="Digite seu usuário" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="loginPass">Senha</label>
+            <input type="password" id="loginPass" placeholder="Digite sua senha" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
+        </form>
+      </div>
+      <div class="login-card-footer">
+        Sistema de Registro Civil v1.0.0
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">RC</div>
+      <div>
+        <h1>Registro Civil</h1>
+        <small>Sistema de Gestão</small>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-section="dashboard">
+        <span class="icon">📊</span> Dashboard
+      </button>
+      <button class="nav-item" data-section="nascimento">
+        <span class="icon">👶</span> Nascimento
+        <span class="badge" id="badge-nascimento">0</span>
+      </button>
+      <button class="nav-item" data-section="casamento">
+        <span class="icon">💍</span> Casamento
+        <span class="badge" id="badge-casamento">0</span>
+      </button>
+      <button class="nav-item" data-section="obito">
+        <span class="icon">⚰️</span> Óbito
+        <span class="badge" id="badge-obito">0</span>
+      </button>
+      <button class="nav-item" data-section="livroE">
+        <span class="icon">📚</span> Livro E
+        <span class="badge" id="badge-livro-e">0</span>
+      </button>
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:8px 16px">
+      <button class="nav-item" data-section="certidao">
+        <span class="icon">📄</span> Certidões
+      </button>
+      <button class="nav-item" data-section="consulta">
+        <span class="icon">🔍</span> Consulta
+      </button>
+    </nav>
+    <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;opacity:0.5">
+      v1.0.0 - MVP
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle">☰</button>
+        <h2>Dashboard</h2>
+      </div>
+      <div class="actions">
+        <div class="user-info" id="userInfo" style="display:none">
+          <span class="user-avatar" id="userAvatar">J</span>
+          <span id="userName">João</span>
+          <button class="btn-logout" onclick="App.logout()">Sair</button>
+        </div>
+        <span style="font-size:13px;color:var(--text-secondary)" id="clock"></span>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- Dashboard -->
+      <section id="section-dashboard" class="section active">
+        <div class="card"><div class="card-body"></div></div>
+      </section>
+
+      <!-- Nascimento -->
+      <section id="section-nascimento" class="section">
+        <div class="card"><div class="table-container"></div></div>
+      </section>
+
+      <!-- Casamento -->
+      <section id="section-casamento" class="section">
+        <div class="card"><div class="table-container"></div></div>
+      </section>
+
+      <!-- Óbito -->
+      <section id="section-obito" class="section">
+        <div class="card"><div class="table-container"></div></div>
+      </section>
+
+      <!-- Livro E -->
+      <section id="section-livroE" class="section">
+        <div class="card"><div class="table-container"></div></div>
+      </section>
+
+      <!-- Certidão -->
+      <section id="section-certidao" class="section">
+        <div class="card">
+          <div class="card-header"><h3>Emissão de Certidão / 2ª Via</h3></div>
+          <div class="card-body"></div>
+        </div>
+      </section>
+
+      <!-- Consulta -->
+      <section id="section-consulta" class="section">
+        <div class="card">
+          <div class="card-header"><h3>Consulta de Registros</h3></div>
+          <div class="card-body"></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Detalhes</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container"></div>
+
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
