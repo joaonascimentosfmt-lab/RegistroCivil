@@ -80,10 +80,11 @@ const Db = {
   },
 
   _gerarMatricula(tipo, indice) {
+    const cns = '065136';
     const prefixos = { nascimento: 'NASC', casamento: 'CAS', obito: 'OBIT', 'livro-e': 'LIVRE' };
     const prefixo = prefixos[tipo] || 'REG';
     const ano = new Date().getFullYear();
-    return prefixo + '-' + ano + '-' + String(indice).padStart(5, '0');
+    return cns + '-' + prefixo + '-' + ano + '-' + String(indice).padStart(5, '0');
   },
 
   save(registro) {
