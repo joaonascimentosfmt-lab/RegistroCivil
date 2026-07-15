@@ -1,0 +1,407 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PersonType {
+  PF
+  PJ
+}
+
+enum ProtocolStatus {
+  ABERTO
+  EM_ANDAMENTO
+  AGUARDANDO_DOCUMENTOS
+  AGUARDANDO_ANALISE
+  CONCLUIDO
+  CANCELADO
+}
+
+enum ServiceType {
+  COMPRA_VENDA
+  DOACAO
+  PERMUTA
+  DIVORCIO
+  INVENTARIO
+  USUCAPIAO
+  ATA_NOTARIAL
+  PROCURACAO
+  REVOGACAO
+  TESTAMENTO
+  RECONHECIMENTO_FIRMA
+  AUTENTICACAO
+  APOSTILAMENTO
+  CERTIDAO
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  VERY_HIGH
+}
+
+enum ChecklistItemStatus {
+  PENDING
+  COMPLETED
+  NOT_APPLICABLE
+}
+
+enum DocumentType {
+  RG
+  CPF
+  CERTIDAO_CASAMENTO
+  MATRICULA
+  ITBI
+  CCIR
+  ITR
+  CAR
+  COMPROVANTE_ENDERECO
+  PROCURACAO
+  OUTROS
+}
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique
+  name          String
+  password      String
+  roleId        String   @db.Uuid
+  role          Role     @relation(fields: [roleId], references: [id])
+  isActive      Boolean  @default(true)
+  serventia     String   @default("Atlas Cartórios")
+  avatar        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  protocols     Protocol[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+
+  @@index([email])
+  @@index([roleId])
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  permissions String[]
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users User[]
+
+  @@index([name])
+  @@map("roles")
+}
+
+model Person {
+  id             String     @id @default(uuid()) @db.Uuid
+  type           PersonType
+  name           String
+  cpf            String?    @unique
+  cnpj           String?    @unique
+  rg             String?
+  cnh            String?
+  estadoCivil    String?
+  profissao      String?
+  nacionalidade  String?
+  dataNascimento DateTime?
+  telefone       String?
+  email          String?
+  cep            String?
+  endereco       String?
+  cidade         String?
+  estado         String?
+  observacoes    String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  deletedAt      DateTime?
+
+  protocolParties ProtocolParty[]
+  documents       Document[]
+
+  @@index([name])
+  @@index([cpf])
+  @@index([cnpj])
+  @@index([email])
+  @@index([telefone])
+  @@map("people")
+}
+
+model Property {
+  id                 String   @id @default(uuid()) @db.Uuid
+  matricula          String   @unique
+  livro              String
+  folha              String
+  endereco           String
+  municipio          String
+  area               String?
+  inscricaoMunicipal String?
+  ccir               String?
+  itr                String?
+  car                String?
+  confrontacoes      String?
+  observacoes        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
+
+  protocolProperties ProtocolProperty[]
+
+  @@index([matricula])
+  @@index([endereco])
+  @@map("properties")
+}
+
+model Protocol {
+  id              String         @id @default(uuid()) @db.Uuid
+  numero          String         @unique
+  serviceType     ServiceType
+  status          ProtocolStatus @default(ABERTO)
+  valor           Decimal?       @db.Decimal(15, 2)
+  dataAbertura    DateTime       @default(now())
+  dataConclusao   DateTime?
+  escreventeId    String?        @db.Uuid
+  escrevente      User?          @relation(fields: [escreventeId], references: [id])
+  observacoes     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
+
+  parties         ProtocolParty[]
+  properties      ProtocolProperty[]
+  documents       Document[]
+  checklists      Checklist[]
+  siscoafAnalyses SiscoafAnalysis[]
+  financeRecords  FinanceRecord[]
+
+  @@index([numero])
+  @@index([status])
+  @@index([serviceType])
+  @@index([escreventeId])
+  @@index([dataAbertura])
+  @@map("protocols")
+}
+
+model ProtocolParty {
+  id         String   @id @default(uuid()) @db.Uuid
+  protocolId String   @db.Uuid
+  protocol   Protocol @relation(fields: [protocolId], references: [id])
+  personId   String   @db.Uuid
+  person     Person   @relation(fields: [personId], references: [id])
+  role       String?
+  createdAt  DateTime @default(now())
+
+  @@unique([protocolId, personId])
+  @@map("protocol_parties")
+}
+
+model ProtocolProperty {
+  id         String   @id @default(uuid()) @db.Uuid
+  protocolId String   @db.Uuid
+  protocol   Protocol @relation(fields: [protocolId], references: [id])
+  propertyId String   @db.Uuid
+  property   Property @relation(fields: [propertyId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([protocolId, propertyId])
+  @@map("protocol_properties")
+}
+
+model Document {
+  id           String       @id @default(uuid()) @db.Uuid
+  protocolId   String?      @db.Uuid
+  protocol     Protocol?    @relation(fields: [protocolId], references: [id])
+  personId     String?      @db.Uuid
+  person       Person?      @relation(fields: [personId], references: [id])
+  type         DocumentType
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  path         String
+  version      Int          @default(1)
+  uploadedById String?      @db.Uuid
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deletedAt    DateTime?
+
+  @@index([protocolId])
+  @@index([personId])
+  @@map("documents")
+}
+
+model Checklist {
+  id         String             @id @default(uuid()) @db.Uuid
+  protocolId String             @db.Uuid
+  protocol   Protocol           @relation(fields: [protocolId], references: [id])
+  serviceType ServiceType
+  items      ChecklistItem[]
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@index([protocolId])
+  @@map("checklists")
+}
+
+model ChecklistItem {
+  id         String             @id @default(uuid()) @db.Uuid
+  checklistId String            @db.Uuid
+  checklist  Checklist          @relation(fields: [checklistId], references: [id])
+  documentType DocumentType
+  label      String
+  required   Boolean            @default(true)
+  status     ChecklistItemStatus @default(PENDING)
+  notes      String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@index([checklistId])
+  @@map("checklist_items")
+}
+
+model Rule {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  conditions  Json
+  actions     Json
+  active      Boolean  @default(true)
+  priority    Int      @default(0)
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active])
+  @@index([category])
+  @@map("rules")
+}
+
+model SiscoafIndicator {
+  id                 String   @id @default(uuid()) @db.Uuid
+  description        String
+  weight             Int
+  category           String
+  isRequired         Boolean  @default(false)
+  isOptional         Boolean  @default(true)
+  normativeReference String?
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([category])
+  @@index([active])
+  @@map("siscoaf_indicators")
+}
+
+model SiscoafParameter {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique
+  name        String
+  value       String
+  description String?
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("siscoaf_parameters")
+}
+
+model SiscoafAnalysis {
+  id             String     @id @default(uuid()) @db.Uuid
+  protocolId     String     @db.Uuid
+  protocol       Protocol   @relation(fields: [protocolId], references: [id])
+  score          Int
+  riskLevel      RiskLevel
+  indicators     Json
+  justification  String?
+  recommendation String?
+  decision       String?
+  analyzedById   String?    @db.Uuid
+  analyzedAt     DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([protocolId])
+  @@index([riskLevel])
+  @@index([decision])
+  @@map("siscoaf_analyses")
+}
+
+model DecisionTree {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  nodes       Json
+  active      Boolean  @default(true)
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("decision_trees")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  action    String
+  entity    String
+  entityId  String?
+  userId    String?  @db.Uuid
+  userEmail String?
+  user      User?    @relation(fields: [userId], references: [id])
+  method    String?
+  url       String?
+  details   Json?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity])
+  @@index([entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+model FinanceRecord {
+  id            String          @id @default(uuid()) @db.Uuid
+  protocolId    String?         @db.Uuid
+  protocol      Protocol?       @relation(fields: [protocolId], references: [id])
+  description   String
+  value         Decimal         @db.Decimal(15, 2)
+  type          String
+  status        String
+  paymentMethod String?
+  dueDate       DateTime?
+  paidAt        DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([protocolId])
+  @@map("finance_records")
+}
